@@ -1,0 +1,45 @@
+#!/usr/bin/env ruby
+
+require "watir-webdriver"
+
+GOOGLE_SEARCH_URL = ENV["GOOGLE_SEARCH_URL"] || "https://www.google.com/"
+
+@search = ARGV.join(" ")
+@search.strip!
+
+if @search.size < 1
+  puts "Usage: bin/google <search term>"
+  exit 1
+end
+
+@browser = Watir::Browser.new
+@browser.goto GOOGLE_SEARCH_URL
+
+sleep 1 # wait for page to load
+
+@browser.text_field(name: "q").set(@search)
+@browser.button.click # click on the first button, search !
+
+sleep 1 # wait for page to load, woo~
+
+# look for the second link on the page
+#
+# This searches for h3 elements with css class "r"
+@h3s = @browser.h3s(class: "r")
+
+# I then want to find the first link inside the second h3 (indexes start at 0)
+@url = @h3s[1].link.href
+
+puts "URL of the second result is #{@url}"
+
+# let's visit that link now
+@h3s[1].link.click
+
+# wait a bit for the page to load
+sleep 2
+
+# and take a screenshot
+@browser.screenshot.save "my-screenshot.png"
+
+# now let's just close the browser
+@browser.close
